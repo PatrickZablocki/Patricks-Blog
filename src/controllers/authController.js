@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 //Registrierung
-const register = async (reg,res) => {
+const register = async (req,res) => {
     try {
         const { username, email, password } = req.body;
 
@@ -15,7 +15,7 @@ const register = async (reg,res) => {
         const user = await User.create({
             username,
             email,
-            passwort: hashedPassword,
+            password: hashedPassword,
         });
         res.status(201).json({ message: "User erstellt!" , userId: user.id });
     } catch (error) {
@@ -26,7 +26,7 @@ const register = async (reg,res) => {
 // Login
 const login = async (req, res) => {
     try {
-        const { email, password } = res.body;
+        const { email, password } = req.body;
 
         //User suchen
         const user = await User.findOne({ where: { email } });
@@ -38,7 +38,11 @@ const login = async (req, res) => {
         // JWT erstellen
         const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-        res.json({ message: "Login erfolgreich", token });
+        res.json({ 
+            message: "Login erfolgreich",
+            token,
+            user: { id: user.id, username: user.username, email: user.email },
+        });
     }   catch (error) {
         res.status(500).json({ error: error.message });
     }
